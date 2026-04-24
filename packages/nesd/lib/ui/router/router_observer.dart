@@ -14,13 +14,13 @@ class RouterObserver extends _$RouterObserver implements NavigatorObserver {
   void didPush(Route route, Route? previousRoute) => _update(route);
 
   @override
-  void didPop(Route route, Route? previousRoute) => _update(route);
+  void didPop(Route route, Route? previousRoute) => _update(previousRoute);
 
   @override
   void didReplace({Route? newRoute, Route? oldRoute}) => _update(newRoute);
 
   @override
-  void didRemove(Route route, Route? previousRoute) => _update(route);
+  void didRemove(Route route, Route? previousRoute) => _update(previousRoute);
 
   @override
   void didChangeTop(Route topRoute, Route? previousTopRoute) =>

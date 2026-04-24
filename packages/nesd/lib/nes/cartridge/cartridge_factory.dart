@@ -8,6 +8,7 @@ import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'cartridge_factory.g.dart';
@@ -38,6 +39,16 @@ class CartridgeFactory {
     final chrRamSize = databaseEntry?.chrRamSize ?? _parseChrRamSize(rom);
 
     final hasBattery = databaseEntry?.hasBattery ?? _parseHasBattery(rom);
+    final mapper = _parseMapper(rom);
+    final romFormat = _parseRomFormat(rom);
+
+    runtimeDebugLog(
+      'load_rom file=${file.name} mapper=${mapper.id} '
+      'mapperName=${mapper.name} format=$romFormat '
+      'prgBanks=${rom[4]} chrBanks=${rom[5]} '
+      'flags6=0x${rom[6].toRadixString(16)} '
+      'flags7=0x${rom[7].toRadixString(16)}',
+    );
 
     return Cartridge(
       file: file,
@@ -51,9 +62,9 @@ class CartridgeFactory {
       alternativeNametableLayout: _parseAlternativeNametableLayout(rom),
       hasBattery: hasBattery,
       hasTrainer: _parseHasTrainer(rom),
-      mapper: _parseMapper(rom),
+      mapper: mapper,
       consoleType: _parseConsoleType(rom),
-      romFormat: _parseRomFormat(rom),
+      romFormat: romFormat,
       tvSystem: _parseTvSystem(rom),
       fileHash: sha1.convert(rom).toString(),
       romHash: romHash,

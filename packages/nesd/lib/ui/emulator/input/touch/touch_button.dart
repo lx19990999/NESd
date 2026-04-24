@@ -5,7 +5,9 @@ import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/controls/touch_controls_opacity.dart';
 import 'package:nesd/ui/theme/base.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 
 enum TouchButtonShape { circle, rectangle }
 
@@ -31,11 +33,16 @@ class TouchButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final active = useState(false);
     final actionStream = ref.watch(actionStreamProvider);
+    final opacity = ref.watch(touchControlsOpacityProvider);
 
     void up() {
       active.value = false;
 
       if (action case final action?) {
+        runtimeDebugLog(
+          'touch_up label=$label action=${action.code} '
+          'type=${config.bindingType.name}',
+        );
         actionStream.add(
           InputActionEvent(
             action: action,
@@ -46,13 +53,19 @@ class TouchButton extends HookConsumerWidget {
       }
     }
 
-    final color = active.value ? touchInputColorActive : touchInputColor;
+    final color = active.value
+        ? touchInputColorActive(opacity)
+        : touchInputColor(opacity);
 
     return GestureDetector(
       onTapDown: (_) {
         active.value = true;
 
         if (action case final action?) {
+          runtimeDebugLog(
+            'touch_down label=$label action=${action.code} '
+            'type=${config.bindingType.name}',
+          );
           actionStream.add(
             InputActionEvent(
               action: action,

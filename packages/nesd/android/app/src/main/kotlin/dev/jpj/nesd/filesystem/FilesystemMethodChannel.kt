@@ -124,11 +124,15 @@ class FilesystemMethodChannel(
 
     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+      addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+      addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val initialDirectory = arguments["initialDirectory"]
 
-        putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialDirectory)
+        if (!initialDirectory.isNullOrBlank()) {
+          putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialDirectory.toUri())
+        }
       }
     }
 
@@ -156,7 +160,7 @@ class FilesystemMethodChannel(
 
     when (resultCode) {
       Activity.RESULT_OK -> resultData?.data?.also { uri ->
-        filesystem.persistPermission(uri)
+        filesystem.persistPermission(uri, resultData.flags)
 
         val path = uri.toString()
         val name = filesystem.getDisplayName(mainActivity, uri)

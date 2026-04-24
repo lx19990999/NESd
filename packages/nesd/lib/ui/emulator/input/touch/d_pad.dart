@@ -6,6 +6,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/controls/touch_controls_opacity.dart';
 
 class DPad extends HookConsumerWidget {
   const DPad({required this.config, super.key});
@@ -15,6 +16,7 @@ class DPad extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actionStream = ref.watch(actionStreamProvider);
+    final opacity = ref.watch(touchControlsOpacityProvider);
     final position = useState(Offset.zero);
 
     final half = config.size / 2;
@@ -143,7 +145,7 @@ class DPad extends HookConsumerWidget {
                   config.deadZone * config.size,
                   config.deadZone * config.size,
                 ),
-                color: touchInputColor,
+                color: touchInputColor(opacity),
               ),
               DPadSegment(
                 rect: left,
@@ -152,8 +154,8 @@ class DPad extends HookConsumerWidget {
                   bottomLeft: borderRadius,
                 ),
                 color: left.contains(position.value)
-                    ? touchInputColorActive
-                    : touchInputColor,
+                    ? touchInputColorActive(opacity)
+                    : touchInputColor(opacity),
               ),
               DPadSegment(
                 rect: right,
@@ -162,8 +164,8 @@ class DPad extends HookConsumerWidget {
                   bottomRight: borderRadius,
                 ),
                 color: right.contains(position.value)
-                    ? touchInputColorActive
-                    : touchInputColor,
+                    ? touchInputColorActive(opacity)
+                    : touchInputColor(opacity),
               ),
               DPadSegment(
                 rect: up,
@@ -172,8 +174,8 @@ class DPad extends HookConsumerWidget {
                   topRight: borderRadius,
                 ),
                 color: up.contains(position.value)
-                    ? touchInputColorActive
-                    : touchInputColor,
+                    ? touchInputColorActive(opacity)
+                    : touchInputColor(opacity),
               ),
               DPadSegment(
                 rect: down,
@@ -182,8 +184,8 @@ class DPad extends HookConsumerWidget {
                   bottomRight: borderRadius,
                 ),
                 color: down.contains(position.value)
-                    ? touchInputColorActive
-                    : touchInputColor,
+                    ? touchInputColorActive(opacity)
+                    : touchInputColor(opacity),
               ),
             ],
           ),

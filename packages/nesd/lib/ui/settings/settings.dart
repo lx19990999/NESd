@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
@@ -25,6 +26,127 @@ part 'settings.g.dart';
 enum RendererPreference { auto, gpu, cpu }
 
 enum PixelAspectRatio { auto, ntsc, pal, square, stretch, custom }
+
+bool _defaultShowTouchControls() {
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android || TargetPlatform.iOS => true,
+    _ => false,
+  };
+}
+
+RendererPreference _defaultRendererPreference() {
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android => RendererPreference.cpu,
+    _ => RendererPreference.auto,
+  };
+}
+
+List<TouchInputConfig> _migrateTurboButtonSizes(
+  List<TouchInputConfig> configs,
+) {
+  return [
+    for (final config in configs)
+      switch (config) {
+        CircleButtonConfig(:final action?, size: 56)
+            when action.code == controller1TurboA.code ||
+                action.code == controller1TurboB.code =>
+          config.copyWith(size: 75),
+        _ => config,
+      },
+  ];
+}
+
+List<TouchInputConfig> _migratePortraitTurboButtonLayout(
+  List<TouchInputConfig> configs,
+) {
+  return [
+    for (final config in configs)
+      switch (config) {
+        CircleButtonConfig(:final action?, x: 0.9, y: 0.12)
+            when action.code == controller1TurboA.code =>
+          config.copyWith(x: 0.7, y: 0.18, size: 75),
+        CircleButtonConfig(:final action?, x: 0.4, y: 0.12)
+            when action.code == controller1TurboB.code =>
+          config.copyWith(x: 0.2, y: 0.18, size: 75),
+        _ => config,
+      },
+  ];
+}
+
+List<TouchInputConfig> _migrateLandscapeTurboButtonLayout(
+  List<TouchInputConfig> configs,
+) {
+  return [
+    for (final config in configs)
+      switch (config) {
+        CircleButtonConfig(:final action?, x: 0.72, y: -0.35)
+            when action.code == controller1TurboA.code =>
+          config.copyWith(x: 0.85, y: -0.36, size: 75),
+        CircleButtonConfig(:final action?, x: 0.47, y: -0.35)
+            when action.code == controller1TurboB.code =>
+          config.copyWith(x: 0.6, y: -0.36, size: 75),
+        _ => config,
+      },
+  ];
+}
+
+List<TouchInputConfig> _migratePortraitStartSelectLayout(
+  List<TouchInputConfig> configs,
+) {
+  return [
+    for (final config in configs)
+      switch (config) {
+        RectangleButtonConfig(
+          :final action?,
+          x: -0.25,
+          y: 0.0,
+          width: 60,
+          height: 40,
+        )
+            when action.code == controller1Select.code =>
+          config.copyWith(x: -0.3, width: 84, height: 44),
+        RectangleButtonConfig(
+          :final action?,
+          x: 0.25,
+          y: 0.0,
+          width: 60,
+          height: 40,
+        )
+            when action.code == controller1Start.code =>
+          config.copyWith(x: 0.3, width: 84, height: 44),
+        _ => config,
+      },
+  ];
+}
+
+List<TouchInputConfig> _migrateLandscapeStartSelectLayout(
+  List<TouchInputConfig> configs,
+) {
+  return [
+    for (final config in configs)
+      switch (config) {
+        RectangleButtonConfig(
+          :final action?,
+          x: -0.6,
+          y: 0.75,
+          width: 60,
+          height: 40,
+        )
+            when action.code == controller1Select.code =>
+          config.copyWith(width: 96, height: 44),
+        RectangleButtonConfig(
+          :final action?,
+          x: 0.6,
+          y: 0.75,
+          width: 60,
+          height: 40,
+        )
+            when action.code == controller1Start.code =>
+          config.copyWith(width: 96, height: 44),
+        _ => config,
+      },
+  ];
+}
 
 List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
   return json
@@ -437,6 +559,8 @@ class SettingsController extends _$SettingsController {
     if (raw == null) {
       final settings = Settings(
         bindings: defaultBindings,
+        showTouchControls: _defaultShowTouchControls(),
+        renderer: _defaultRendererPreference(),
         narrowTouchInputConfig: defaultPortraitConfig,
         wideTouchInputConfig: defaultLandscapeConfig,
       );
@@ -454,6 +578,20 @@ class SettingsController extends _$SettingsController {
       volume: loaded.volume.clamp(0.0, 1.0),
       bindings: loaded.bindings.isNotEmpty ? loaded.bindings : defaultBindings,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
+      renderer: switch (defaultTargetPlatform) {
+        TargetPlatform.android => RendererPreference.cpu,
+        _ => loaded.renderer,
+      },
+      narrowTouchInputConfig: _migratePortraitStartSelectLayout(
+        _migratePortraitTurboButtonLayout(
+          _migrateTurboButtonSizes(loaded.narrowTouchInputConfig),
+        ),
+      ),
+      wideTouchInputConfig: _migrateLandscapeStartSelectLayout(
+        _migrateLandscapeTurboButtonLayout(
+          _migrateTurboButtonSizes(loaded.wideTouchInputConfig),
+        ),
+      ),
     );
   }
 

@@ -118,8 +118,17 @@ class FilesystemService(private val contentResolver: ContentResolver) {
     }
   }
 
-  fun persistPermission(uri: Uri) {
-    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+  fun persistPermission(uri: Uri, flags: Int) {
+    val persistedFlags =
+      flags and (
+        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+          Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+
+    contentResolver.takePersistableUriPermission(
+      uri,
+      persistedFlags or Intent.FLAG_GRANT_READ_URI_PERMISSION,
+    )
   }
 
   fun getDisplayName(context: Context, uri: Uri): String? {

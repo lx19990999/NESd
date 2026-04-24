@@ -6,6 +6,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/controls/touch_controls_opacity.dart';
 
 class JoyStick extends HookConsumerWidget {
   const JoyStick({required this.config, super.key});
@@ -15,6 +16,7 @@ class JoyStick extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actionStream = ref.watch(actionStreamProvider);
+    final opacity = ref.watch(touchControlsOpacityProvider);
     final position = useState(Alignment.center);
     final active = useState(false);
 
@@ -115,9 +117,9 @@ class JoyStick extends HookConsumerWidget {
         child: Container(
           width: config.size,
           height: config.size,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: touchInputColorSecondary,
+            color: touchInputColorSecondary(opacity),
           ),
           child: Align(
             alignment: position.value,
@@ -126,7 +128,9 @@ class JoyStick extends HookConsumerWidget {
               height: config.innerSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: active.value ? touchInputColor : touchInputColorActive,
+                color: active.value
+                    ? touchInputColor(opacity)
+                    : touchInputColorActive(opacity),
               ),
             ),
           ),

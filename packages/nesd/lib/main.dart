@@ -34,6 +34,13 @@ void main(List<String> arguments) async {
     migrationCompletedKey: 'migrationCompleted',
   );
 
+  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [],
+    );
+  }
+
   final filesystem = Platform.isAndroid
       ? AndroidFilesystem()
       : NativeFilesystem();

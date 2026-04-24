@@ -16,7 +16,7 @@ class StretchSwitch extends ConsumerWidget {
 
     return FocusOnHover(
       child: SwitchSettingsTile(
-        title: const Text('Stretch screen'),
+        title: const Text('Fit screen'),
         value: setting,
         onChanged: (value) => controller.stretch = value,
       ),

@@ -12,6 +12,7 @@ import 'package:nesd/nes/cartridge/mapper/namco108_state.dart';
 import 'package:nesd/nes/cartridge/mapper/namco163_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/single_prg_bank_state.dart';
+import 'package:nesd/nes/cartridge/mapper/vrc4_state.dart';
 
 abstract class MapperState {
   const MapperState({required this.id});
@@ -37,6 +38,7 @@ abstract class MapperState {
       5 => MMC5State.deserialize(reader),
       7 => AXROMState.deserialize(reader),
       9 => MMC2State.deserialize(reader),
+      23 => VRC4State.deserialize(reader),
       19 => Namco163State.deserialize(reader),
       66 => GxROMState.deserialize(reader),
       71 => SinglePrgBankState.deserialize(reader, 71),

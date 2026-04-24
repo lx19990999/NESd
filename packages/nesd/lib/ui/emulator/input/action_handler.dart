@@ -10,6 +10,7 @@ import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'action_handler.g.dart';
@@ -75,6 +76,8 @@ ActionHandler actionHandler(Ref ref) {
 }
 
 class ActionHandler {
+  static const _turboInterval = Duration(milliseconds: 60);
+
   ActionHandler({
     required this.nes,
     required this.nesController,
@@ -93,14 +96,35 @@ class ActionHandler {
   final AudioOutput audioOutput;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
+  final Map<String, _TurboBinding> _turboBindings = {};
 
   bool enabled = true;
 
-  bool get _inGame => _currentRoute == EmulatorRoute.name;
+  bool get _inGame {
+    if (nes == null) {
+      return false;
+    }
+
+    return switch (_currentRoute) {
+      MenuRoute.name ||
+      SettingsRoute.name ||
+      FilePickerRoute.name ||
+      CheatsRoute.name ||
+      SaveStatesRoute.name ||
+      TouchEditorRoute.name => false,
+      _ => true,
+    };
+  }
 
   String? _currentRoute = MainRoute.name;
 
   void dispose() {
+    for (final turboBinding in _turboBindings.values) {
+      turboBinding.timer.cancel();
+      nes?.buttonUp(turboBinding.action.controller, turboBinding.action.button);
+    }
+
+    _turboBindings.clear();
     _actionSubscription.cancel();
   }
 
@@ -108,6 +132,12 @@ class ActionHandler {
     if (!enabled) {
       return;
     }
+
+    runtimeDebugLog(
+      'action_event route=${_currentRoute ?? 'unknown'} '
+      'inGame=$_inGame action=${event.action.code} '
+      'value=${event.value} binding=${event.bindingType.name}',
+    );
 
     if (event.value > 0.5) {
       if (event.bindingType == BindingType.toggle && _inGame) {
@@ -139,6 +169,10 @@ class ActionHandler {
       case ControllerPress():
         if (_inGame) {
           nes?.buttonUp(action.controller, action.button);
+        }
+      case TurboControllerPress():
+        if (_inGame) {
+          _stopTurbo(action);
         }
       case FastForward():
         if (_inGame) {
@@ -181,6 +215,8 @@ class ActionHandler {
     switch (action) {
       case ControllerPress():
         nes?.buttonDown(action.controller, action.button);
+      case TurboControllerPress():
+        _startTurbo(action);
       case SaveState():
         _saveState(action.slot);
       case LoadState():
@@ -252,6 +288,43 @@ class ActionHandler {
     nesController.loadState(slot);
   }
 
+  void _startTurbo(TurboControllerPress action) {
+    final activeNes = nes;
+
+    if (activeNes == null || _turboBindings.containsKey(action.code)) {
+      return;
+    }
+
+    activeNes.buttonDown(action.controller, action.button);
+
+    final turboBinding = _TurboBinding(action);
+
+    turboBinding.timer = Timer.periodic(_turboInterval, (_) {
+      final pressed = turboBinding.pressed;
+
+      if (pressed) {
+        nes?.buttonUp(action.controller, action.button);
+      } else {
+        nes?.buttonDown(action.controller, action.button);
+      }
+
+      turboBinding.pressed = !pressed;
+    });
+
+    _turboBindings[action.code] = turboBinding;
+  }
+
+  void _stopTurbo(TurboControllerPress action) {
+    final turboBinding = _turboBindings.remove(action.code);
+
+    if (turboBinding == null) {
+      return;
+    }
+
+    turboBinding.timer.cancel();
+    nes?.buttonUp(action.controller, action.button);
+  }
+
   void _sendIntent(Intent intent) {
     final focus = WidgetsBinding.instance.focusManager.primaryFocus;
 
@@ -273,4 +346,12 @@ class ActionHandler {
 
     Actions.of(context).invokeAction(flutterAction, intent);
   }
+}
+
+class _TurboBinding {
+  _TurboBinding(this.action);
+
+  final TurboControllerPress action;
+  late final Timer timer;
+  bool pressed = true;
 }

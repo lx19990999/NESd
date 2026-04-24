@@ -343,7 +343,9 @@ class DisplayFrameController extends ChangeNotifier
     }
 
     final wantsTexture =
-        _rendererPreference != RendererPreference.cpu && !_textureFailed;
+        defaultTargetPlatform != TargetPlatform.android &&
+        _rendererPreference != RendererPreference.cpu &&
+        !_textureFailed;
 
     if (wantsTexture) {
       if (_texture case final currentTexture?) {

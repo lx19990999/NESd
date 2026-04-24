@@ -5,5 +5,6 @@ environment:
   sdk: '>=3.10.0 <4.0.0'
 
 workspace:
+  - packages/mp_audio_stream
   - packages/nesd
   - packages/nesd_texture

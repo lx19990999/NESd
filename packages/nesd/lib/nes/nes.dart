@@ -16,6 +16,7 @@ import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 import 'package:nesd/util/wait.dart';
 
 class NES {
@@ -362,10 +363,18 @@ class NES {
   }
 
   void buttonDown(int controller, NesButton button) {
+    if (button == NesButton.start || button == NesButton.select) {
+      runtimeDebugLog('nes_button_down controller=$controller button=$button');
+    }
+
     bus.buttonDown(controller, button);
   }
 
   void buttonUp(int controller, NesButton button) {
+    if (button == NesButton.start || button == NesButton.select) {
+      runtimeDebugLog('nes_button_up controller=$controller button=$button');
+    }
+
     bus.buttonUp(controller, button);
   }
 

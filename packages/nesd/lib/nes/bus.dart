@@ -45,7 +45,11 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      return cpu.ram[address & 0x07ff];
+      return _applyCheat(
+        address,
+        cpu.ram[address & 0x07ff],
+        disableSideEffects: disableSideEffects,
+      );
     }
 
     if (address < 0x4000) {
@@ -76,11 +80,7 @@ class Bus {
       disableSideEffects: disableSideEffects,
     );
 
-    if (disableSideEffects) {
-      return value;
-    }
-
-    return cheatEngine.apply(address, value);
+    return _applyCheat(address, value, disableSideEffects: disableSideEffects);
   }
 
   void cpuWrite(int address, int value) {
@@ -134,6 +134,14 @@ class Bus {
     }
 
     cartridge.cpuWrite(address, value);
+  }
+
+  int _applyCheat(int address, int value, {required bool disableSideEffects}) {
+    if (disableSideEffects) {
+      return value;
+    }
+
+    return cheatEngine.apply(address, value);
   }
 
   int ppuRead(int address, {bool disableSideEffects = false}) {

@@ -1,5 +1,15 @@
 pluginManagement {
     def flutterSdkPath = {
+        def gradleFlutterSdkPath = providers.gradleProperty("flutter.sdk").orNull
+        if (gradleFlutterSdkPath != null) {
+            return gradleFlutterSdkPath
+        }
+
+        def envFlutterSdkPath = System.getenv("FLUTTER_ROOT")
+        if (envFlutterSdkPath != null) {
+            return envFlutterSdkPath
+        }
+
         def properties = new Properties()
         file("local.properties").withInputStream { properties.load(it) }
         def flutterSdkPath = properties.getProperty("flutter.sdk")
@@ -24,4 +34,3 @@ plugins {
 }
 
 include ":app"
-

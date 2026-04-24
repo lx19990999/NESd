@@ -145,6 +145,8 @@ class OpenRomButton extends ConsumerWidget {
           return null;
         }
 
+        settingsController.lastRomPath = result;
+
         return result;
       }
 
@@ -155,6 +157,8 @@ class OpenRomButton extends ConsumerWidget {
         if (result == null) {
           return null;
         }
+
+        settingsController.lastRomPath = result;
 
         return result;
       }

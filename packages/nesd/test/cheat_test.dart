@@ -88,6 +88,24 @@ void main() {
       expect(cheat.compareValue, isNull);
     });
 
+    test('supports raw cheats in JSON', () {
+      final json = {
+        'id': '456',
+        'name': 'Raw Cheat',
+        'type': 'raw',
+        'address': 0x0032,
+        'value': 0x64,
+        'code': '0032-01-64',
+        'enabled': true,
+      };
+
+      final cheat = Cheat.fromJson(json);
+
+      expect(cheat.type, equals(CheatType.raw));
+      expect(cheat.address, equals(0x0032));
+      expect(cheat.value, equals(0x64));
+    });
+
     test('round-trip serialization preserves data', () {
       final original = Cheat(
         id: '123',

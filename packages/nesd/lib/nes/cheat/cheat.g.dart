@@ -28,4 +28,7 @@ Map<String, dynamic> _$CheatToJson(Cheat instance) => <String, dynamic>{
   'enabled': instance.enabled,
 };
 
-const _$CheatTypeEnumMap = {CheatType.gameGenie: 'gameGenie'};
+const _$CheatTypeEnumMap = {
+  CheatType.gameGenie: 'gameGenie',
+  CheatType.raw: 'raw',
+};

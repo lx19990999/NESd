@@ -115,28 +115,40 @@ class DisplayBuilder extends ConsumerWidget {
           ),
         );
 
-        final narrow = constraints.maxWidth < constraints.maxHeight;
-
-        final screenWidth = effectiveImageWidth;
-        final screenHeight = imageHeight;
-
-        final screenSize = Size(
-          screenWidth.toDouble(),
-          screenHeight.toDouble(),
-        );
-        final scaledSize = screenSize * scale;
-
         final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
-
-        final anchorAtTop = settings.showTouchControls && narrow;
-
-        final center = Offset(
-          canvasSize.width / 2,
-          anchorAtTop ? canvasSize.height / 4 : canvasSize.height / 2,
+        final screenSize = Size(
+          effectiveImageWidth.toDouble(),
+          imageHeight.toDouble(),
         );
 
-        final topLeft =
-            center - Offset(scaledSize.width / 2, scaledSize.height / 2);
+        late final Rect screenRect;
+        late final double screenScaleX;
+        late final double screenScaleY;
+        final portrait = canvasSize.height > canvasSize.width;
+
+        if (settings.stretch) {
+          final scaledSize = screenSize * maxScale;
+          final center = portrait
+              ? Offset(canvasSize.width / 2, scaledSize.height / 2)
+              : canvasSize.center(Offset.zero);
+          final topLeft =
+              center - Offset(scaledSize.width / 2, scaledSize.height / 2);
+
+          screenRect = topLeft & scaledSize;
+          screenScaleX = maxScale;
+          screenScaleY = maxScale;
+        } else {
+          final scaledSize = screenSize * scale;
+          final center = portrait
+              ? Offset(canvasSize.width / 2, scaledSize.height / 2)
+              : canvasSize.center(Offset.zero);
+          final topLeft =
+              center - Offset(scaledSize.width / 2, scaledSize.height / 2);
+
+          screenRect = topLeft & scaledSize;
+          screenScaleX = scale;
+          screenScaleY = scale;
+        }
 
         final baseLayer = textureId != null
             ? SizedBox.expand(
@@ -152,7 +164,8 @@ class DisplayBuilder extends ConsumerWidget {
 
         final overlayLayer = CustomPaint(
           painter: EmulatorOverlayPainter(
-            scale: scale,
+            xScale: screenScaleX,
+            yScale: screenScaleY,
             showBorder: settings.showBorder,
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
@@ -166,8 +179,8 @@ class DisplayBuilder extends ConsumerWidget {
         );
 
         final screen = SizedBox(
-          width: scaledSize.width,
-          height: scaledSize.height,
+          width: screenRect.width,
+          height: screenRect.height,
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -182,10 +195,10 @@ class DisplayBuilder extends ConsumerWidget {
           children: [
             const Positioned.fill(child: ColoredBox(color: Colors.black)),
             Positioned(
-              left: topLeft.dx,
-              top: topLeft.dy,
-              width: scaledSize.width,
-              height: scaledSize.height,
+              left: screenRect.left,
+              top: screenRect.top,
+              width: screenRect.width,
+              height: screenRect.height,
               child: screen,
             ),
           ],
@@ -196,8 +209,12 @@ class DisplayBuilder extends ConsumerWidget {
           child: ClipRect(
             child: MouseRegion(
               onHover: (event) {
-                final displayPosition = event.localPosition - topLeft;
-                final nesPosition = displayPosition / scale;
+                final displayPosition =
+                    event.localPosition - screenRect.topLeft;
+                final nesPosition = Offset(
+                  displayPosition.dx / screenScaleX,
+                  displayPosition.dy / screenScaleY,
+                );
 
                 if (!screenSize.contains(nesPosition)) {
                   nes?.bus.zapperPosition = null;
@@ -207,8 +224,12 @@ class DisplayBuilder extends ConsumerWidget {
               },
               child: GestureDetector(
                 onTapDown: (details) {
-                  final displayPosition = details.localPosition - topLeft;
-                  final nesPosition = displayPosition / scale;
+                  final displayPosition =
+                      details.localPosition - screenRect.topLeft;
+                  final nesPosition = Offset(
+                    displayPosition.dx / screenScaleX,
+                    displayPosition.dy / screenScaleY,
+                  );
 
                   if (!screenSize.contains(nesPosition)) {
                     return;
@@ -218,8 +239,12 @@ class DisplayBuilder extends ConsumerWidget {
                   nes?.bus.zapperPull();
                 },
                 onTapUp: (details) {
-                  final displayPosition = details.localPosition - topLeft;
-                  final nesPosition = displayPosition / scale;
+                  final displayPosition =
+                      details.localPosition - screenRect.topLeft;
+                  final nesPosition = Offset(
+                    displayPosition.dx / screenScaleX,
+                    displayPosition.dy / screenScaleY,
+                  );
 
                   if (screenSize.contains(nesPosition)) {
                     nes?.bus.zapperPosition = nesPosition;

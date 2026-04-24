@@ -8,6 +8,10 @@ enum CheatType {
   // Format: [APZLGITYEOXUKSVN]{6,8}
   // Example: SLXPLOVS (Infinite Lives in SMB)
   gameGenie,
+
+  // Raw / Pro Action Replay style code
+  // Format: 0032-01-64
+  raw,
 }
 
 // Represents a single cheat code

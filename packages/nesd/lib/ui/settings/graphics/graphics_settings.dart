@@ -5,6 +5,7 @@ import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/stretch_switch.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 
@@ -24,6 +25,7 @@ class GraphicsSettings extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const RendererSelector(),
+            const StretchSwitch(),
             const BorderSwitch(),
             const ScalingDropdown(),
             const PixelAspectRatioDropdown(),

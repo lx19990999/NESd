@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/cheat/game_genie_decoder.dart';
+import 'package:nesd/nes/cheat/raw_cheat_decoder.dart';
 import 'package:nesd/ui/cheats/cheat_manager.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
@@ -269,10 +270,12 @@ class _AddEditCheatDialog extends HookConsumerWidget {
         return;
       }
 
-      final decodedCheat = GameGenieDecoder.decode(code, name: name);
+      final decodedCheat =
+          RawCheatDecoder.decode(code, name: name) ??
+          GameGenieDecoder.decode(code, name: name);
 
       if (decodedCheat == null) {
-        errorText.value = 'Invalid Game Genie code';
+        errorText.value = 'Use Game Genie or RAW/PAR like 0032-01-64';
         return;
       }
 
@@ -305,14 +308,14 @@ class _AddEditCheatDialog extends HookConsumerWidget {
             TextField(
               controller: codeController,
               decoration: InputDecoration(
-                labelText: 'Game Genie Code',
-                hintText: 'e.g., SLXPLOVS',
+                labelText: 'Cheat Code',
+                hintText: 'e.g., SLXPLOVS or 0032-01-64',
                 errorText: errorText.value,
-                helperText: '6 or 8 character code',
+                helperText: 'Supports Game Genie and RAW/PAR cheats',
               ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(
-                  RegExp('[APZLGITYEOXUKSVNapzlgityeoxuksvn]'),
+                  RegExp('[0-9A-Fa-fAPZLGITYEOXUKSVNapzlgityeoxuksvn\\-\\s]'),
                 ),
                 TextInputFormatter.withFunction((oldValue, newValue) {
                   return TextEditingValue(

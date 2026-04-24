@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -31,7 +32,8 @@ class CpuFramePainter extends CustomPainter {
 
 class EmulatorOverlayPainter extends CustomPainter {
   EmulatorOverlayPainter({
-    required this.scale,
+    required this.xScale,
+    required this.yScale,
     required this.showBorder,
     required this.paused,
     required this.fastForward,
@@ -39,7 +41,8 @@ class EmulatorOverlayPainter extends CustomPainter {
     this.crossHairPosition,
   });
 
-  final double scale;
+  final double xScale;
+  final double yScale;
   final bool showBorder;
   final bool paused;
   final bool fastForward;
@@ -77,7 +80,10 @@ class EmulatorOverlayPainter extends CustomPainter {
     if (paused) {
       _drawPause(canvas, size);
     } else if (crossHairPosition case final Offset position?) {
-      _drawCrossHair(canvas, position * scale);
+      _drawCrossHair(
+        canvas,
+        Offset(position.dx * xScale, position.dy * yScale),
+      );
     }
 
     if (fastForward) {
@@ -127,7 +133,7 @@ class EmulatorOverlayPainter extends CustomPainter {
   }
 
   void _drawCrossHair(Canvas canvas, Offset position) {
-    final length = 6.0 * scale;
+    final length = 6.0 * min(xScale, yScale);
 
     canvas
       ..drawLine(
@@ -144,7 +150,8 @@ class EmulatorOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant EmulatorOverlayPainter oldDelegate) {
-    return scale != oldDelegate.scale ||
+    return xScale != oldDelegate.xScale ||
+        yScale != oldDelegate.yScale ||
         showBorder != oldDelegate.showBorder ||
         paused != oldDelegate.paused ||
         fastForward != oldDelegate.fastForward ||

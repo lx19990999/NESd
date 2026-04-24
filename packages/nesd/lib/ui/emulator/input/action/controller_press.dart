@@ -12,6 +12,18 @@ class ControllerPress extends InputAction {
   final NesButton button;
 }
 
+class TurboControllerPress extends InputAction {
+  const TurboControllerPress(
+    this.controller,
+    this.button, {
+    required super.title,
+    required super.code,
+  });
+
+  final int controller;
+  final NesButton button;
+}
+
 const controller1Up = ControllerPress(
   0,
   NesButton.up,
@@ -66,6 +78,20 @@ const controller1B = ControllerPress(
   NesButton.b,
   title: 'Controller 1 B',
   code: 'controller1.b',
+);
+
+const controller1TurboA = TurboControllerPress(
+  0,
+  NesButton.a,
+  title: 'Controller 1 Turbo A',
+  code: 'controller1.turboA',
+);
+
+const controller1TurboB = TurboControllerPress(
+  0,
+  NesButton.b,
+  title: 'Controller 1 Turbo B',
+  code: 'controller1.turboB',
 );
 
 const controller2Up = ControllerPress(
