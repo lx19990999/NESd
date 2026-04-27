@@ -75,6 +75,10 @@ class Bus {
       return 0;
     }
 
+    if (cartridge.hasTrainer && address >= 0x7000 && address < 0x7200) {
+      return cartridge.trainer[address - 0x7000];
+    }
+
     final value = cartridge.cpuRead(
       address,
       disableSideEffects: disableSideEffects,
@@ -130,6 +134,12 @@ class Bus {
     }
 
     if (address < 0x4020) {
+      return;
+    }
+
+    if (cartridge.hasTrainer && address >= 0x7000 && address < 0x7200) {
+      cartridge.trainer[address - 0x7000] = value;
+
       return;
     }
 

@@ -23,6 +23,7 @@ class CartridgeFactory {
       throw InvalidRomHeader(rom.sublist(0, 4));
     }
 
+    final trainer = _parseTrainer(rom);
     final chr = _parseChr(rom);
     final prgRom = _parsePrgRom(rom);
 
@@ -57,6 +58,7 @@ class CartridgeFactory {
     return Cartridge(
       file: file,
       rom: rom,
+      trainer: trainer,
       prgRom: prgRom,
       chrRom: chr,
       chrRam: Uint8List(chrRamSize),
@@ -82,6 +84,14 @@ class CartridgeFactory {
     final prgRomSize = rom[4] * 0x4000;
 
     return rom.sublist(16 + trainerSize, 16 + trainerSize + prgRomSize);
+  }
+
+  Uint8List _parseTrainer(Uint8List rom) {
+    if ((rom[6] & 0x04) == 0) {
+      return Uint8List(0x200);
+    }
+
+    return Uint8List.fromList(rom.sublist(16, 16 + 0x200));
   }
 
   Uint8List _parseChr(Uint8List rom) {

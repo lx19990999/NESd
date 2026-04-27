@@ -3,6 +3,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 
 class MMC3 extends Mapper {
   MMC3([super.id = 4]);
@@ -39,6 +40,7 @@ class MMC3 extends Mapper {
   bool _irqEnabled = false;
 
   int _a12LowStart = 0;
+  int _debugWriteLogsRemaining = 96;
 
   @override
   MMC3State get state => MMC3State(
@@ -116,6 +118,7 @@ class MMC3 extends Mapper {
     _irqEnabled = false;
 
     _a12LowStart = 0;
+    _debugWriteLogsRemaining = 96;
 
     _updateState();
   }
@@ -142,6 +145,17 @@ class MMC3 extends Mapper {
   @override
   void cpuWrite(int address, int value) {
     super.cpuWrite(address, value);
+
+    if (address >= 0x8000 && _debugWriteLogsRemaining > 0) {
+      _debugWriteLogsRemaining--;
+      runtimeDebugLog(
+        'mmc3_write '
+        'addr=0x${address.toRadixString(16)} '
+        'value=0x${value.toRadixString(16)} '
+        'reg=$register prgMode=$_prgBankMode chrMode=$chrBankMode '
+        'r6=$_r6 r7=$_r7 mirroring=$_mirroring',
+      );
+    }
 
     switch (address & 0xe001) {
       // bank select (0x8000 - 0x9ffe, even)

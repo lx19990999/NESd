@@ -19,6 +19,7 @@ class Cartridge {
   Cartridge({
     required this.file,
     required this.rom,
+    required this.trainer,
     required this.prgRom,
     required this.chrRom,
     required this.chrRam,
@@ -42,6 +43,7 @@ class Cartridge {
 
   final FilesystemFile file;
   final Uint8List rom;
+  final Uint8List trainer;
   final Uint8List prgRom;
   final Uint8List chrRom;
   final Uint8List chrRam;
