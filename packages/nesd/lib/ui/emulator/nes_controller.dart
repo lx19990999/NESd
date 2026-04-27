@@ -27,6 +27,7 @@ import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
+import 'package:nesd/util/runtime_debug_log.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -180,7 +181,7 @@ class NesController {
 
     final data = await _readFile(file.path);
 
-    final extension = p.extension(file.name);
+    final extension = p.extension(file.name).toLowerCase();
 
     final rom = switch (extension) {
       '.nes' => data,
@@ -203,7 +204,10 @@ class NesController {
   }
 
   Future<Uint8List> _readFile(String path) async {
-    final data = await switch (path.contains(':') && path.contains('.zip')) {
+    final lowercasePath = path.toLowerCase();
+
+    final data = await switch (path.contains(':') &&
+        lowercasePath.contains('.zip')) {
       true => ZipFilesystem(
         path: path.split(':').first,
         zipData: await filesystem.read(path.split(':').first),
@@ -306,8 +310,10 @@ class NesController {
 
       _load();
     } on PathNotFoundException {
+      runtimeDebugLog('load_rom_failed file=${file.name} error=PathNotFound');
       return false;
     } on Exception catch (e) {
+      runtimeDebugLog('load_rom_failed file=${file.name} error=$e');
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       nesState.stop();
@@ -429,7 +435,7 @@ class NesController {
     final archive = ZipDecoder().decodeBytes(data);
 
     final roms = archive.files
-        .where((file) => p.extension(file.name) == '.nes')
+        .where((file) => p.extension(file.name).toLowerCase() == '.nes')
         .toList();
 
     if (roms.isEmpty) {

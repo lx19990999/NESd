@@ -37,7 +37,7 @@ class FilePickerScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(filePickerStateProvider, (_, next) {
       if (next is FilePickerData &&
-          p.extension(next.directory.path) == '.zip' &&
+          p.extension(next.directory.path).toLowerCase() == '.zip' &&
           next.files.length == 1) {
         scheduleMicrotask(() {
           final file = next.files.first;
@@ -285,7 +285,7 @@ class FileList extends HookConsumerWidget {
                         ),
                     isDirectory: file.type == FilesystemFileType.directory,
                     file: file,
-                    fileIsZip: p.extension(file.path) == '.zip',
+                    fileIsZip: p.extension(file.path).toLowerCase() == '.zip',
                     onChangeDirectory: onChangeDirectory,
                   );
                 },

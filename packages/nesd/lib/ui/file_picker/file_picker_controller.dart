@@ -135,7 +135,7 @@ class FilePickerController {
 
   Future<void> _update(FilesystemFile directory) async {
     try {
-      if (p.extension(directory.path) == '.zip') {
+      if (p.extension(directory.path).toLowerCase() == '.zip') {
         await _listFilesFromZip(directory);
 
         return;
