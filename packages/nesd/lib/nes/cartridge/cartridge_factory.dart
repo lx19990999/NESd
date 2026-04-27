@@ -28,19 +28,23 @@ class CartridgeFactory {
 
     final romHash = sha1.convert(rom.sublist(16)).toString();
     final prgHash = sha1.convert(prgRom).toString();
+    final romFormat = _parseRomFormat(rom);
+    final mapperId = _parseMapperId(rom, romFormat);
+    final mapper = Mapper.fromId(mapperId);
 
     final databaseEntry = database.find(
       RomInfo(file: file, romHash: romHash, prgHash: prgHash),
     );
 
-    final prgRamSize = databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom);
+    final prgRamSize =
+        databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom, romFormat, mapperId);
     final prgSaveRamSize =
-        databaseEntry?.prgSaveRamSize ?? _parsePrgSaveRamSize(rom);
-    final chrRamSize = databaseEntry?.chrRamSize ?? _parseChrRamSize(rom);
+        databaseEntry?.prgSaveRamSize ??
+        _parsePrgSaveRamSize(rom, romFormat, mapperId);
+    final chrRamSize =
+        databaseEntry?.chrRamSize ?? _parseChrRamSize(rom, romFormat);
 
     final hasBattery = databaseEntry?.hasBattery ?? _parseHasBattery(rom);
-    final mapper = _parseMapper(rom);
-    final romFormat = _parseRomFormat(rom);
 
     runtimeDebugLog(
       'load_rom file=${file.name} mapper=${mapper.id} '
@@ -113,49 +117,62 @@ class CartridgeFactory {
     return (rom[6] & 0x04) != 0;
   }
 
-  Mapper _parseMapper(Uint8List rom) {
+  int _parseMapperId(Uint8List rom, RomFormat romFormat) {
     final flags6 = rom[6];
     final flags7 = rom[7];
     final flags8 = rom[8];
 
-    late int mapperId;
-
-    if (_parseRomFormat(rom) == RomFormat.nes20) {
-      mapperId =
-          ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
-    } else {
-      mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
+    if (romFormat == RomFormat.nes20) {
+      return ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
     }
 
-    return Mapper.fromId(mapperId);
+    return (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
   }
 
   ConsoleType _parseConsoleType(Uint8List rom) {
     return ConsoleType.values[rom[7] & 0x03];
   }
 
-  int _parsePrgRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
+  int _parsePrgRamSize(Uint8List rom, RomFormat romFormat, int mapperId) {
+    if (romFormat == RomFormat.iNes) {
       return max(1, rom[8]) * 0x2000;
-    } else {
-      return 0;
     }
-  }
 
-  int _parsePrgSaveRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
+    final size = _nes20RamSize(rom[10] & 0x0f);
+
+    if (size != 0) {
+      return size;
+    }
+
+    // Many modern hacks ship as NES 2.0 but still expect the old implicit
+    // 8KB WRAM behavior used by mapper 4.
+    if (mapperId == 4) {
       return 0x2000;
-    } else {
-      return 0;
     }
+
+    return 0;
   }
 
-  int _parseChrRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
-      return 0;
-    } else {
-      return 64 << (rom[11] & 0x0f);
+  int _parsePrgSaveRamSize(Uint8List rom, RomFormat romFormat, int mapperId) {
+    if (romFormat == RomFormat.iNes) {
+      return 0x2000;
     }
+
+    final size = _nes20RamSize((rom[10] >> 4) & 0x0f);
+
+    if (size != 0) {
+      return size;
+    }
+
+    return 0;
+  }
+
+  int _parseChrRamSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == RomFormat.iNes) {
+      return 0;
+    }
+
+    return _nes20RamSize(rom[11] & 0x0f);
   }
 
   TvSystem _parseTvSystem(Uint8List rom) {
@@ -174,6 +191,14 @@ class CartridgeFactory {
 
   RomFormat _parseRomFormat(Uint8List rom) {
     return (rom[7] & 0x0C) == 0x08 ? RomFormat.nes20 : RomFormat.iNes;
+  }
+
+  int _nes20RamSize(int shiftCount) {
+    if (shiftCount == 0) {
+      return 0;
+    }
+
+    return 64 << shiftCount;
   }
 }
 
