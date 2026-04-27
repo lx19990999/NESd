@@ -29,18 +29,19 @@ class AudioStreamImpl implements AudioStream {
   late _MAInt _getBufferFilledSizeFfi;
 
   @override
-  int init(
-      {int bufferMilliSec = 3000,
-      int waitingBufferMilliSec = 100,
-      int channels = 1,
-      int sampleRate = 44100}) {
+  int init({
+    int bufferMilliSec = 3000,
+    int waitingBufferMilliSec = 100,
+    int channels = 1,
+    int sampleRate = 44100,
+  }) {
     final dynLib = (Platform.isLinux || Platform.isAndroid)
         ? DynamicLibrary.open("libmp_audio_stream.so")
         : Platform.isWindows
-            ? DynamicLibrary.open("mp_audio_stream.dll")
-            : (Platform.isMacOS || Platform.isIOS)
-                ? DynamicLibrary.executable()
-                : DynamicLibrary.executable();
+        ? DynamicLibrary.open("mp_audio_stream.dll")
+        : (Platform.isMacOS || Platform.isIOS)
+        ? DynamicLibrary.executable()
+        : DynamicLibrary.executable();
 
     final initFfi = dynLib
         .lookup<NativeFunction<_MAInitFunc>>("ma_stream_init")
@@ -75,10 +76,11 @@ class AudioStreamImpl implements AudioStream {
         .asFunction<_MAInt>();
 
     return initFfi(
-        channels * bufferMilliSec * sampleRate ~/ 1000,
-        channels * waitingBufferMilliSec * sampleRate ~/ 1000,
-        channels,
-        sampleRate);
+      channels * bufferMilliSec * sampleRate ~/ 1000,
+      channels * waitingBufferMilliSec * sampleRate ~/ 1000,
+      channels,
+      sampleRate,
+    );
   }
 
   @override
@@ -95,7 +97,9 @@ class AudioStreamImpl implements AudioStream {
   @override
   AudioStreamStat stat() {
     return AudioStreamStat(
-        full: _statFullCountFfi(), exhaust: _statExhaustCountFfi());
+      full: _statFullCountFfi(),
+      exhaust: _statExhaustCountFfi(),
+    );
   }
 
   @override

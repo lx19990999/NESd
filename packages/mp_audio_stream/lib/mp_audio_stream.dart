@@ -8,11 +8,12 @@ import 'src/mp_audio_stream_mastream.dart'
 abstract class AudioStream {
   /// Initializes an audio stream and starts to play. Returns 0 then scucess.
   /// Calling more than once makes a new AudioStream, the previous device will be `uninit`ed.
-  int init(
-      {int bufferMilliSec = 3000,
-      int waitingBufferMilliSec = 100,
-      int channels = 1,
-      int sampleRate = 44100});
+  int init({
+    int bufferMilliSec = 3000,
+    int waitingBufferMilliSec = 100,
+    int channels = 1,
+    int sampleRate = 44100,
+  });
 
   /// Release current audio stream.
   void uninit();

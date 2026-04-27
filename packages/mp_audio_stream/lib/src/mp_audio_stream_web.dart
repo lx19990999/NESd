@@ -8,7 +8,11 @@ import '../mp_audio_stream.dart' as mpaudio;
 
 extension type JSAudioStream(JSObject _) implements JSObject {
   external void init(
-      int bufferLength, int waitingBufferLength, int channels, int sampleRate);
+    int bufferLength,
+    int waitingBufferLength,
+    int channels,
+    int sampleRate,
+  );
   external void uninit();
   external void resume();
   external void push(JSFloat32Array buf);
@@ -49,17 +53,21 @@ class AudioStreamImpl extends mpaudio.AudioStream {
   }
 
   @override
-  int init(
-      {int bufferMilliSec = 3000,
-      int waitingBufferMilliSec = 100,
-      int channels = 1,
-      int sampleRate = 44100}) {
+  int init({
+    int bufferMilliSec = 3000,
+    int waitingBufferMilliSec = 100,
+    int channels = 1,
+    int sampleRate = 44100,
+  }) {
     this.channels = channels;
-    delay((s) => s.init(
+    delay(
+      (s) => s.init(
         channels * (bufferMilliSec * sampleRate ~/ 1000),
         channels * (waitingBufferMilliSec * sampleRate ~/ 1000),
         channels,
-        sampleRate));
+        sampleRate,
+      ),
+    );
     return 0;
   }
 
@@ -88,7 +96,9 @@ class AudioStreamImpl extends mpaudio.AudioStream {
 
     final statJsObj = _stream!.stat;
     return mpaudio.AudioStreamStat(
-        full: statJsObj.fullCount, exhaust: statJsObj.exhaustCount);
+      full: statJsObj.fullCount,
+      exhaust: statJsObj.exhaustCount,
+    );
   }
 
   @override
