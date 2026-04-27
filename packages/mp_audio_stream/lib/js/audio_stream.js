@@ -89,6 +89,7 @@
 
     const init =  async (bufSize, waitingBufSize, channels, sampleRate) => {
       audioCtx = new AudioContext({sampleRate:sampleRate});
+      window.AudioStream.maxBufferSize = bufSize;
 
       const proc = Processor;
       let procCode = proc.toString();
@@ -140,13 +141,15 @@
   
       push: push,
 
-      getBufferSize: () => {
+      maxBufferSize: 0,
+
+      getBufferSize: function() {
         return this.maxBufferSize;
       },
 
-      getBufferFilledSize: () => {
-        return workletNode.port.postMessage({"type":"getBufferFilledSize"});
-      }
+      getBufferFilledSize: function() {
+        return this.bufferFilledSize;
+      },
 
       uninit: async () => {
         await audioCtx?.close();

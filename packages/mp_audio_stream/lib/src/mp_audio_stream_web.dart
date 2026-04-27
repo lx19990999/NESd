@@ -17,6 +17,8 @@ extension type JSAudioStream(JSObject _) implements JSObject {
   external void resume();
   external void push(JSFloat32Array buf);
   external JSAudioStreamStat get stat;
+  external int get maxBufferSize;
+  external int get bufferFilledSize;
   external void resetStat();
 }
 
@@ -108,11 +110,11 @@ class AudioStreamImpl extends mpaudio.AudioStream {
 
   @override
   int getBufferSize() {
-    return _stream?.callMethod('getBufferSize', []);
+    return _stream?.maxBufferSize ?? 0;
   }
 
   @override
   int getBufferFilledSize() {
-    return _stream?.callMethod('getBufferFilledSize', []);
+    return _stream?.bufferFilledSize ?? 0;
   }
 }
